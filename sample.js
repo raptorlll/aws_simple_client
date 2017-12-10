@@ -1,36 +1,97 @@
-/*
- * Copyright 2013. Amazon Web Services, Inc. All Rights Reserved.
- * 
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * 
- *     http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
-**/
+let createBucket = require('./functions/createBucket');
+let deleteBucket = require('./functions/deleteBucket');
+let listBucket = require('./functions/listBucket');
+let getFiles = require('./functions/getFiles');
+let deletefile = require('./functions/deletefile');
+let permissionManager = require('./functions/permissionManager');
 
-// Load the SDK and UUID
-var AWS = require('aws-sdk');
-var uuid = require('node-uuid');
+const express = require('express');
+const app = express();
+const bodyParser = require('body-parser')
 
-// Create an S3 client
-var s3 = new AWS.S3();
+// allow cross domain requsts
+app.use(function (req, res, next) {
+    // Website you wish to allow to connect
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    // Request methods you wish to allow
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+    // Request headers you wish to allow
+    res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
+    // Set to true if you need the website to include cookies in the requests sent
+    // to the API (e.g. in case you use sessions)
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    // Pass to next layer of middleware
+    next();
+});
 
-// Create a bucket and upload something into it
-var bucketName = 'node-sdk-sample-' + uuid.v4();
-var keyName = 'hello_world.txt';
+//post body parser
+app.use(bodyParser.urlencoded({
+    extended: true
+}));
 
-s3.createBucket({Bucket: bucketName}, function() {
-  var params = {Bucket: bucketName, Key: keyName, Body: 'Hello World!'};
-  s3.putObject(params, function(err, data) {
-    if (err)
-      console.log(err)
-    else
-      console.log("Successfully uploaded data to " + bucketName + "/" + keyName);
-  });
+app.use(bodyParser.json());
+
+app.post('/addbucket', (req, res) => {
+    createBucket.simple(
+        req.body.name,
+        req.body.key,
+        req.body.text
+    );
+});
+
+
+app.post('/deletebucket', (req, res) => {
+    deleteBucket(
+        req.body.name
+    );
+});
+
+app.post('/deletefile', (req, res) => {
+    deletefile(
+        req.body.bucket,
+        req.body.name
+    ).then((data)=>{
+        res.send('deleted');
+    });
+});
+
+app.post('/publicfile', (req, res) => {
+    permissionManager.makePublic(
+        req.body.bucket,
+        req.body.name
+    ).then((data)=>{
+        res.send(data);
+    })
+});
+
+app.post('/privatefile', (req, res) => {
+    permissionManager.makePrivate(
+        req.body.bucket,
+        req.body.name
+    ).then((data)=>{
+        res.send(data);
+    })
+});
+
+
+app.get('/getfilesfor', (req, res) => {
+    getFiles.simple(
+        req.query.name
+    ).then(data=>{
+        res.send(data)
+    });
+});
+
+app.get('/listBucket', (req, res) => {
+    listBucket.simple()
+        .then((data)=>{
+            res.send(data);
+        })
+        .catch((err) => {
+            res.send([]);
+        });
+});
+
+app.listen(80, () => {
+    console.log('Example app listening on port 80!')
 });
