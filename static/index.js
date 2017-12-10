@@ -1,6 +1,6 @@
 class CONSTS {
     static get ROUTE() {
-        return 'http://localhost'
+        return ''
     }
 
 }

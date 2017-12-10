@@ -6,6 +6,7 @@ let deletefile = require('./functions/deletefile');
 let permissionManager = require('./functions/permissionManager');
 
 const express = require('express');
+const path = require('path');
 const app = express();
 const bodyParser = require('body-parser')
 
@@ -23,6 +24,8 @@ app.use(function (req, res, next) {
     // Pass to next layer of middleware
     next();
 });
+
+app.use('/static', express.static(path.join(__dirname, 'static')))
 
 //post body parser
 app.use(bodyParser.urlencoded({
