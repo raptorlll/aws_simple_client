@@ -1,5 +1,7 @@
 # AWS SDK for Node.js Sample Project
 
+## Simple study project in order to manipulate objects in aws
+
 A simple Node.js application illustrating usage of the AWS SDK for Node.js.
 
 ## Requirements

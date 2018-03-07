@@ -8,7 +8,7 @@ let permissionManager = require('./functions/permissionManager');
 const express = require('express');
 const path = require('path');
 const app = express();
-const bodyParser = require('body-parser')
+const bodyParser = require('body-parser');
 
 // allow cross domain requsts
 app.use(function (req, res, next) {
